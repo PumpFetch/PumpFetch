@@ -41,6 +41,7 @@ pumpfetch is engineered to give you a complete, real-time overview of coin inves
 - Rapid trading activities (**sniping**), including analysis of both sniper trades and repeated sniper wallet behavior.
 - **Developer activity** (buying or selling by the coin creator).
 - **Automated behavior** by identifying wallets that deploy bots.
+- Which wallets are repeatedly executing sniper transactions (**sniper wallets**).
 
 Each module of pumpfetch is responsible for a specific aspect of this analysis, and together they provide a detailed picture of market activity.
 
@@ -51,14 +52,14 @@ Each module of pumpfetch is responsible for a specific aspect of this analysis, 
 ### WebSocket Listener
 - **File:** `websocket_listener.py`
 - **Functionality:**  
-  Establishes a persistent WebSocket connection to an external data source, subscribes to token updates (such as creation, buy, or sell events), and stores the incoming data into a database. This module serves as the real-time data ingestion engine for pumpfetch.
+  Establishes a persistent WebSocket connection to an external data source, subscribes to token updates (such as creation, buy, or sell events), and writes the data into a database for subsequent analysis by other modules.
 
 ---
 
 ### Dev Sold
 - **File:** `dev_sold.py`
 - **Functionality:**  
-  Analyzes the database to detect transactions where the coin’s creator (developer) is selling tokens. It records these “Dev Sold” events in a separate table to help identify insider selling.
+  Analyzes the database to detect transactions where the coin’s creator (developer) is selling tokens. It records these “Dev Sold” events in a separate table to help identify potential insider selling.
 
 ---
 
@@ -72,7 +73,7 @@ Each module of pumpfetch is responsible for a specific aspect of this analysis, 
 ### Bot Deployer
 - **File:** `bot_deployer.py`
 - **Functionality:**  
-  Identifies wallets that repeatedly deploy bots to invest in the coin. This module aggregates transaction data and flags wallets that exhibit automated investing behavior, storing these records in a dedicated table.
+  Identifies wallets that deploy bots to automatically invest in the coin. This module aggregates transaction data and flags wallets that exhibit repeated automated behavior, storing these records in a dedicated table.
 
 ---
 
@@ -100,7 +101,7 @@ Each module of pumpfetch is responsible for a specific aspect of this analysis, 
 ### Sniper Wallets
 - **File:** `sniper_wallets.py`
 - **Functionality:**  
-  Analyzes the database to identify wallets that repeatedly conduct sniper transactions. This module groups transactions by wallet and records those with multiple entries, helping to highlight potentially suspicious trading behavior.
+  Analyzes the database to identify wallets that repeatedly perform sniper transactions. This module groups transactions by wallet and records those with multiple entries, helping to highlight potentially suspicious trading behavior.
 
 ---
 
@@ -110,7 +111,7 @@ Each module of pumpfetch is responsible for a specific aspect of this analysis, 
   Provides a Flask-based REST API endpoint for trade bundle analysis. It:
   - Retrieves all trades for a given token.
   - Filters out trades below a certain SOL threshold.
-  - Groups trades by a slot (time or sequence identifier).
+  - Groups trades by slot (a time or sequence identifier).
   - Calculates aggregated metrics (total buys, total sells, and net results).
   - Returns the analyzed data as a JSON response.
 
@@ -140,7 +141,7 @@ Each module of pumpfetch is responsible for a specific aspect of this analysis, 
 
 - **Python 3.8+**
 - **MySQL** database for storing transaction data
-- Required Python packages (see `requirements.txt`):
+- Required Python libraries (see `requirements.txt`):
   - `mysql-connector-python`
   - `requests`
   - `flask`
@@ -152,92 +153,120 @@ Each module of pumpfetch is responsible for a specific aspect of this analysis, 
 
 1. **Clone the Repository:**
 
-   ```bash
+   ```
    git clone https://github.com/yourusername/pumpfetch.git
    cd pumpfetch
-Set Up a Virtual Environment (Optional but Recommended):
+   ```
 
-bash
-Kopieren
-python3 -m venv venv
-source venv/bin/activate  # For Windows: venv\Scripts\activate
-Install Dependencies:
+2. **Set Up a Virtual Environment (Recommended):**
 
-bash
-Kopieren
-pip install -r requirements.txt
-Configure Environment Variables:
+   ```
+   python3 -m venv venv
+   source venv/bin/activate  # For Windows: venv\Scripts\activate
+   ```
 
-Create a .env file or set the following environment variables:
+3. **Install Dependencies:**
 
-DB_HOST
-DB_USER
-DB_PASSWORD
-DB_DATABASE
-WEBSOCKET_URI (if applicable)
-Usage
-Each module in pumpfetch can be run individually or as part of the overall system. For example:
+   ```
+   pip install -r requirements.txt
+   ```
 
-Start the WebSocket Listener:
+4. **Configure Environment Variables:**
 
-bash
-Kopieren
-python websocket_listener.py
-Run Developer Transaction Modules:
+   Create a `.env` file or set the following environment variables:
+   - `DB_HOST`
+   - `DB_USER`
+   - `DB_PASSWORD`
+   - `DB_DATABASE`
+   - `WEBSOCKET_URI` (if applicable)
 
-bash
-Kopieren
-python dev_sold.py
-python dev_bought.py
-Run Copy Cat Detection:
+---
 
-bash
-Kopieren
-python copy_cat.py
-Run Sniper Analysis:
+## Usage
 
-bash
-Kopieren
-python sniper.py
-Run Sniper Bot Detection:
+Each module in pumpfetch can be run independently or as part of the overall system. For example:
 
-bash
-Kopieren
-python sniper_bot.py
-Analyze Sniper Wallets:
+- **Start the WebSocket Listener:**
 
-bash
-Kopieren
-python sniper_wallets.py
-Start the Bundle API:
+   ```
+   python websocket_listener.py
+   ```
 
-bash
-Kopieren
-python bundle.py
-The API will be available at http://0.0.0.0:5000/.
+- **Run Developer Transaction Modules:**
 
-Run Bot Deployer Analysis:
+   ```
+   python dev_sold.py
+   python dev_bought.py
+   ```
 
-bash
-Kopieren
-python bot_deployer.py
+- **Run Copy Cat Detection:**
+
+   ```
+   python copy_cat.py
+   ```
+
+- **Run Sniper Analysis:**
+
+   ```
+   python sniper.py
+   ```
+
+- **Run Sniper Bot Detection:**
+
+   ```
+   python sniper_bot.py
+   ```
+
+- **Analyze Sniper Wallets:**
+
+   ```
+   python sniper_wallets.py
+   ```
+
+- **Start the Bundle API:**
+
+   ```
+   python bundle.py
+   ```
+   The API will be available at `http://0.0.0.0:5000/`.
+
+- **Run Bot Deployer Analysis:**
+
+   ```
+   python bot_deployer.py
+   ```
+
 pumpfetch continuously processes incoming data and updates its internal state to provide real-time insights into coin investment activities.
 
-Contributing
+---
+
+## Contributing
+
 pumpfetch is open to contributions from the community. We welcome code suggestions, bug fixes, and feature enhancements. Please submit your pull requests or open an issue on GitHub. All contributions will be reviewed, and contributors will be credited for their efforts.
 
-License
+---
+
+## License
+
 This project is licensed under the MIT License:
 
-sql
-Kopieren
-MIT License
-
+MIT License  
 A short and simple permissive license with conditions only requiring preservation of copyright and license notices.
 Licensed works, modifications, and larger works may be distributed under different terms and without source code.
-Legal Notice
-IMPORTANT:
-Although pumpfetch is open-source and available under the MIT License, the contents of this repository are proprietary. Unauthorized reuse, redistribution, or modification of this code beyond the terms of the MIT License is strictly prohibited.
 
-Contact
-For updates and inquiries, please refer to our Twitter profile (link provided in the GitHub description).
+---
+
+## Legal Notice
+
+**IMPORTANT:**  
+While pumpfetch is open-source and available under the MIT License, the contents of this repository are proprietary. Unauthorized reuse, redistribution, or modification of this code beyond the terms of the MIT License is strictly prohibited.
+
+---
+
+## Contact
+
+For updates and inquiries, please refer to the Twitter profile linked in the GitHub description.
+
+---
+
+pumpfetch is a modular solution for in-depth coin investment analysis. By integrating real-time data ingestion, comprehensive transaction analysis, and specialized modules (such as developer activity, copycat detection, sniper trading, and bot deployment), pumpfetch offers a powerful tool for understanding and acting on investment trends.
